@@ -1,10 +1,4 @@
-#!/usr/bin/env zsh
-#
-# Security Audit
-# Discover sub-domains running an http server on the hosts
-# Process these domains through WafW00f engine & output in JSON
-
-from flask import Flask, request, jsonify
+from flask import Flask, request
 from subprocess import Popen, PIPE
 
 app = Flask(__name__)
@@ -13,13 +7,23 @@ app = Flask(__name__)
 def wsra():
     domain = request.args.get('domain', '')
     if not domain:
-        return jsonify({'error': 'Domain parameter is missing'}), 400
-    cmd = f'echo "{domain}" | subfinder -silent | httpx -silent | wafw00f -j -'
-    process = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True)
-    stdout, stderr = process.communicate()
-    if stderr:
-        return jsonify({'error': stderr.decode('utf-8')}), 500
-    return stdout.decode('utf-8')
+        return {'error': 'Domain parameter is missing'}, 400
+    cmd1 = f'echo "{domain}" | subfinder -silent | httpx -mc=200 -silent > "{domain}"-audit.txt'
+    cmd2 = f'wafw00f -i "{domain}"-audit.txt -o "{domain}"-audit.json && rm "{domain}"-audit.txt'
+    cmd3 = f'cat "{domain}"-audit.json && rm "{domain}"-audit.json'
+    process1 = Popen(cmd1, stdout=PIPE, stderr=PIPE, shell=True)
+    stdout1, stderr1 = process1.communicate()
+    if stderr1:
+        return {'error': stderr1.decode('utf-8')}, 500
+    process2 = Popen(cmd2, stdout=PIPE, stderr=PIPE, shell=True)
+    stdout2, stderr2 = process2.communicate()
+    if stderr2:
+        return {'error': stderr2.decode('utf-8')}, 500
+    process3 = Popen(cmd3, stdout=PIPE, stderr=PIPE, shell=True)
+    stdout3, stderr3 = process3.communicate()
+    if stderr3:
+        return {'error': stderr3.decode('utf-8')}, 500
+    return stdout3.decode('utf-8')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
