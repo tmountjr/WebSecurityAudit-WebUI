@@ -3,6 +3,14 @@ from subprocess import Popen, PIPE
 
 app = Flask(__name__)
 
+@app.route('/wsra/healthcheck', methods=['GET'])
+def healthcheck():
+    domain = request.args.get('domain', '')
+    if domain:
+        return domain
+    else:
+        return 'OK'
+
 @app.route('/wsra', methods=['GET'])
 def wsra():
     domain = request.args.get('domain', '')
