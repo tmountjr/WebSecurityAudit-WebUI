@@ -4,7 +4,7 @@ WORKDIR /wsra
 COPY app/ ./
 
 # Update python dependencies
-RUN apt update
+RUN apt update && apt upgrade -y
 RUN apt install -y python3-setuptools
 RUN apt install -y python3-pip
 
@@ -20,6 +20,10 @@ RUN python3 setup.py install
 # Install Python requirements
 WORKDIR /wsra
 RUN pip3 install -r requirements.txt
+
+ARG PORT=5000
+ENV PORT=$PORT
+EXPOSE $PORT
 
 ENTRYPOINT [ "python3" ]
 
