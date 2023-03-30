@@ -1,8 +1,10 @@
+from flask_cors import CORS
 from flask import Flask, request
 from subprocess import Popen, PIPE
 import os
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route('/wsra/healthcheck', methods=['GET'])
 def healthcheck():
